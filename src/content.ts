@@ -7,14 +7,12 @@
 // |   |-- a cmd1
 // |   |-- a cmd2
 
-let result
 let speechRecognitionEnabled = true
 
-if (!('SpeechRecognition' in window)) {
+if (!('webkitSpeechRecognition' in window)) {
   console.log("UPGRADE")
 } else {
-  speechRecognitionEnabled = true
-  var recognition = new SpeechRecognition();
+  var recognition = new webkitSpeechRecognition();
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = 'en-US';
@@ -23,12 +21,15 @@ if (!('SpeechRecognition' in window)) {
     console.log('speech started')
   }
   recognition.onresult = function(event) {
+    query = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      let notFinal = '';
-      if (event.results[i].isFinal) result += event.results[i][0].transcript
-      else notFinal += event.results[i][0].transcript
+      //let notFinal = '';
+      //if (event.results[i].isFinal) query += event.results[i][0].transcript
+      //else query += event.results[i][0].transcript
+      query += event.results[i][0].transcript
     }
-    console.log('result: ', result);
+    input.value = query;
+    generateCommands()
   }
   recognition.onerror = function(event) {
     console.log('error: ', event)
@@ -89,7 +90,7 @@ var css = `
   font-weight: bold;
   color: #65CBCB;
 }
- 
+
 `
 var style = document.createElement('style');
 
@@ -234,6 +235,7 @@ function generateCommands() {
 function openLauncher() {
   launcher.style.visibility = "visible"
   input.focus()
+  recognition.start()
   focused = true
 }
 
@@ -242,6 +244,7 @@ function closeLauncher() {
   input['value'] = ''
   query = ''
   focused = false
+  recognition.stop()
   generateCommands()
 }
 
@@ -258,13 +261,12 @@ function onKeyPress(e) {
       closeLauncher()
     }
   } else {
-    if (e.key === 'e'){
+    if (e.ctrlKey && e.key === 'e') {
       openLauncher()
-      recognition.start()
       e.stopPropagation()
     }
   }
 }
 
 closeLauncher()
-window.addEventListener('keypress', onKeyPress)
+window.addEventListener('keydown', onKeyPress)
