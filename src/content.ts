@@ -5,65 +5,81 @@
 //     |-- a cmd1
 //     |-- a cmd2
 
-if (!('webkitSpeechRecognition' in window)) {
-  upgrade();
+let result
+
+
+if (!('SpeechRecognition' in window)) {
+  console.log("UPGRADE")
 } else {
-  var recognition = new webkitSpeechRecognition();
+  var recognition = new SpeechRecognition();
   recognition.continuous = true;
   recognition.interimResults = true;
-	recognition.lang = 'en-US';
+  recognition.lang = 'en-US';
 
   recognition.onstart = function() {
-		console.log('speech started')
-	}
+    console.log('speech started')
+  }
   recognition.onresult = function(event) {
-		for (let i = event.resultIndex; i < event.results.length; i++) {
-			let notFinal = '';
-			if (event.results[i].isFinal) result += event.results[i][0].transcript
-			else notFinal += event.results[i][0].transcript
-		}
-		console.log('result: ', result);
-	}
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      let notFinal = '';
+      if (event.results[i].isFinal) result += event.results[i][0].transcript
+      else notFinal += event.results[i][0].transcript
+    }
+    console.log('result: ', result);
+  }
   recognition.onerror = function(event) {
-		console.log('error: ', event)
-	}
+    console.log('error: ', event)
+  }
   recognition.onend = function() {
-		console.log('speech ended')
-	}
+    console.log('speech ended')
+  }
 }
 
 var css = `
 #launcher {
-	width: 400px;
-	background-color: #39264F;
-	position: fixed;
-	top: 0;
-	left: 50%;
-	transform: translate(-50%, 0);
-	padding: 5px;
-	opacity: 0.95;
-	box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
-	border-radius: 5px;
-	z-index: 100000;
+  width: 400px;
+  background-color: #39264F;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+  padding: 5px;
+  opacity: 0.95;
+  box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  z-index: 100000;
+}
+
+#launcher input {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  font-size: 20px;
+  margin-left: 10px;
+  type: text;
+  background-color: transparent;
+  color: #eeeeee;
+  outline: none;
+  -webkit-appearance: none;
 }
 
 #launcher a {
-	display: block;
-	padding: 15px;
-	color: white;
-	font-size: 14px;
-	text-decoration: none;
+  display: block;
+  padding: 15px;
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
 }
 
 #launcher a.selected {
-	background-color: #614F75;
-	color: #fff;
+  background-color: #614F75;
+  color: #fff;
 }
 
 #launcher a span.matched {
-	text-decoration: underline;
-	font-weight: bold;
-	color: red
+  text-decoration: underline;
+  font-weight: bold;
+  color: #65CBCB;
 }
  
 `
@@ -78,70 +94,81 @@ if (style['styleSheet']) {
 document.getElementsByTagName('head')[0].appendChild(style);
 
 interface Command {
-	score: number,
-	matches: number[],
-	text: string
+  score: number,
+  matches: number[],
+  text: string,
+  callback: (() => void)
 }
 
-function score(query: string, command: string): Command {
-	const matches: number[] = []
-	let score = 0
-	let j = 0
-	if (query !== '') {
-		for (let i = 0; i < command.length; i++) {
-			if (command[i].toLowerCase() === query[j].toLowerCase()) {
-				score++
-				matches.push(i)
-				j++
-				if (j === query.length) {
-					break
-				}
-			}
-		}
-	}
-	return {
-		score,
-		matches,
-		text: command
-	}
+function score(query: string, command: any): Command {
+  const matches: number[] = []
+  let score = 0
+  let j = 0
+  if (query !== '') {
+    for (let i = 0; i < command.text.length; i++) {
+      if (command.text[i].toLowerCase() === query[j].toLowerCase()) {
+        score++
+        matches.push(i)
+        j++
+        if (j === query.length) {
+          break
+        }
+      }
+    }
+  }
+  return {
+    score,
+    matches,
+    text: command.text,
+    callback: command.callback
+  }
 }
 
-const commands = ['New tab', 'Bookmark this page', 'Exit', 'Open bookmark...', 'New window']
+const commands = [
+  {
+    text: 'New tab',
+    callback () {
+      console.log('NEW TABBBBB')
+    }
+  },
+  {
+    text:'Bookmark this page'
+  },
+  {
+    text: 'Open bookmark...'
+  },
+  {
+    text: 'New window'
+  }
+]
+let scoredCommands: Command[] = []
 let query = ""
 let commandIndex = 0
 let focused = false
 
-
 function createElem(tag: string, style: object) {
-	const elem = document.createElement(tag)
-	for (let key in style) {
-		if (style.hasOwnProperty(key)) {
-			elem.style[key] = style[key]
-		}
-	}
-	return elem
+  const elem = document.createElement(tag)
+  for (let key in style) {
+    if (style.hasOwnProperty(key)) {
+      elem.style[key] = style[key]
+    }
+  }
+  return elem
 }
 
 const launcher = document.createElement('div')
 launcher.id = 'launcher'
 document.body.appendChild(launcher)
 
-const input = createElem('input', {
-	placeholder: 'Enter a command',
-	width: '100%',
-	height: '48px',
-	border: '0',
-	fontSize: '20px',
-	marginLeft: '10px',
-	type: 'text',
-	backgroundColor: 'transparent',
-	color: '#eeeeee'
-})
+const input = document.createElement('input')
+input.autocomplete = 'off'
+input['autocorrect'] = 'off'
+input['spellcheck'] = false
 input.addEventListener('blur', closeLauncher)
 input.addEventListener('keyup', (_) => {
-	query = input['value']
-	console.log('changed', query)
-	generateCommands()
+  query = input['value']
+  console.log('changed', query)
+  generateCommands()
 })
 launcher.appendChild(input)
 
@@ -150,75 +177,77 @@ let container = null
 generateCommands()
 
 function generateCommands() {
-	// Generate the container
-	if (container) {
-		launcher.removeChild(container)
-	}
-	container = createElem('div', {
-		margin: '5px 0'
-	})
-	launcher.appendChild(container)
+  // Generate the container
+  if (container) {
+    launcher.removeChild(container)
+  }
+  container = createElem('div', {
+    margin: '5px 0'
+  })
+  launcher.appendChild(container)
 
-	// Calculate the score of each command
-	let scoredCommands = commands.map((cmd) => score(query, cmd))
-	scoredCommands.sort((x, y) => y.score - x.score)
+  // Calculate the score of each command
+  scoredCommands = commands.map((cmd) => score(query, cmd))
+  scoredCommands.sort((x, y) => y.score - x.score)
 
-	// Add the commands
-	let i = 0;
-	for (let cmd of scoredCommands) {
-		const cmdElem = document.createElement('a')
-		if (i === commandIndex) {
-			cmdElem.classList.add('selected')
-		}
-		let j = 0;
-		let k = 0;
-		console.log(cmd)
-		for (let char of cmd.text) {
-			let span = document.createElement('span')
-			span.innerText = char
-			if (k < cmd.matches.length && j == cmd.matches[k]) {
-				//style['text-decoration'] = 'underline'
-				span.classList.add('matched')
-				k++
-			}
-			cmdElem.appendChild(span)
-			j++;
-		}
-		container.appendChild(cmdElem)
-		i += 1
-	}
+  // Add the commands
+  let i = 0;
+  for (let cmd of scoredCommands) {
+    const cmdElem = document.createElement('a')
+    if (i === commandIndex) {
+      cmdElem.classList.add('selected')
+    }
+    let j = 0;
+    let k = 0;
+    for (let char of cmd.text) {
+      let span = document.createElement('span')
+      span.innerText = char
+      if (k < cmd.matches.length && j == cmd.matches[k]) {
+        //style['text-decoration'] = 'underline'
+        span.classList.add('matched')
+        k++
+      }
+      cmdElem.appendChild(span)
+      j++;
+    }
+    container.appendChild(cmdElem)
+    i += 1
+  }
 }
 
 function openLauncher() {
-	launcher.style.visibility = "visible"
-	input.focus()
-	focused = true
+  launcher.style.visibility = "visible"
+  input.focus()
+  focused = true
 }
 
 function closeLauncher() {
-	launcher.style.visibility = "hidden"
-	input['value'] = ''
-	query = ''
-	focused = false
-	generateCommands()
+  launcher.style.visibility = "hidden"
+  input['value'] = ''
+  query = ''
+  focused = false
+  generateCommands()
 }
 
 function onKeyPress(e) {
-	if (focused) {
-		if (e.key == 'ArrowDown') {
-			commandIndex = (commandIndex + 1) % commands.length
-			generateCommands()
-		} else if (e.key == 'ArrowUp') {
-			commandIndex = ((commandIndex - 1) + commands.length) % commands.length
-			generateCommands()
-		}
-	} else {
-		if (e.key === 'e'){
-			openLauncher()
-			result = '';
-			recognition.start()
-		}
-	}
+  if (focused) {
+    console.log(e.key)
+    if (e.key === 'ArrowDown') {
+      commandIndex = (commandIndex + 1) % commands.length
+      generateCommands()
+    } else if (e.key === 'ArrowUp') {
+      commandIndex = ((commandIndex - 1) + commands.length) % commands.length
+      generateCommands()
+    } else if (e.key === 'Enter') {
+      scoredCommands[commandIndex].callback()
+    }
+  } else {
+    if (e.key === 'e'){
+      openLauncher()
+      recognition.start()
+      e.stopPropagation()
+    }
+  }
 }
 
 closeLauncher()
