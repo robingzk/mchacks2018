@@ -128,18 +128,16 @@ const commands = [
   {
     text: 'New tab',
     callback () {
-      console.log('NEW TABBBBB')
+      window.open('', '_blank')
     }
   },
   {
-    text:'Bookmark this page'
+    text: 'New window',
+    callback () {
+      console.log("NEW WINDOW")
+      window.open('')
+    }
   },
-  {
-    text: 'Open bookmark...'
-  },
-  {
-    text: 'New window'
-  }
 ]
 let scoredCommands: Command[] = []
 let query = ""
@@ -167,7 +165,6 @@ input['spellcheck'] = false
 input.addEventListener('blur', closeLauncher)
 input.addEventListener('keyup', (_) => {
   query = input['value']
-  console.log('changed', query)
   generateCommands()
 })
 launcher.appendChild(input)
@@ -231,7 +228,6 @@ function closeLauncher() {
 
 function onKeyPress(e) {
   if (focused) {
-    console.log(e.key)
     if (e.key === 'ArrowDown') {
       commandIndex = (commandIndex + 1) % commands.length
       generateCommands()
@@ -240,6 +236,7 @@ function onKeyPress(e) {
       generateCommands()
     } else if (e.key === 'Enter') {
       scoredCommands[commandIndex].callback()
+      closeLauncher()
     }
   } else {
     if (e.key === 'e'){
