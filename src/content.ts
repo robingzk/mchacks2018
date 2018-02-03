@@ -7,13 +7,18 @@
 // |   |-- a cmd1
 // |   |-- a cmd2
 
+<<<<<<< HEAD
 let speechRecognitionEnabled = true
 let speechRecognitionIsRunning = false
+=======
+let recognitionEnabled = false
+>>>>>>> 38bd6b9d9b91fc7ba5e399c57846d899f1cca309
 
 if (!('webkitSpeechRecognition' in window)) {
   console.log("UPGRADE")
 } else {
   var recognition = new webkitSpeechRecognition();
+  recognitionEnabled = true
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = 'en-US';
@@ -181,10 +186,11 @@ input.addEventListener('keyup', (_) => {
   query = input['value']
   generateCommands()
 })
+//input.placeholder = 'Enter a command...'
 
 inputContainer.appendChild(input)
 
-if (speechRecognitionEnabled) {
+if (recognitionEnabled) {
   const speechButton = document.createElement('a')
   speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>`
   speechButton.addEventListener('click', onSpeechClick)
@@ -275,7 +281,7 @@ function onKeyPress(e) {
       closeLauncher()
     }
   } else {
-    if (e.ctrlKey && e.key === 'e') {
+    if (e.ctrlKey && e.key === 'e' || e.key === 'F2') {
       openLauncher()
       e.stopPropagation()
     }
