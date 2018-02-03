@@ -6,7 +6,8 @@
   "author": "rgzk <robin.guzniczak@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "node build/firefox.js"
+    "build": "node build/firefox.js",
+    "clean": "rm -rf ./dist"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.39",

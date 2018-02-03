@@ -1,3 +1,2 @@
 
-const x: number = 0;
-console.log(x)
+document.body.style.border = "5px solid red"
