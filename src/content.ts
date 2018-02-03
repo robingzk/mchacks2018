@@ -20,6 +20,25 @@ var css = `
 	z-index: 100000;
 }
 
+#launcher a {
+	display: block;
+	padding: 15px;
+	color: white;
+	font-size: 14px;
+	text-decoration: none;
+}
+
+#launcher a.selected {
+	background-color: #614F75;
+	color: #fff;
+}
+
+#launcher a span.matched {
+	text-decoration: underline;
+	font-weight: bold;
+	color: red
+}
+ 
 `
 var style = document.createElement('style');
 
@@ -119,29 +138,21 @@ function generateCommands() {
 	// Add the commands
 	let i = 0;
 	for (let cmd of scoredCommands) {
-		let style = {
-			display: 'block',
-			padding: '15px',
-			color: 'white',
-			fontSize: '14px'
-		}
+		const cmdElem = document.createElement('a')
 		if (i === commandIndex) {
-			style['backgroundColor'] = '#614F75'
-			style['color'] = '#fff'
+			cmdElem.classList.add('selected')
 		}
-		const cmdElem = createElem('a', style)
 		let j = 0;
 		let k = 0;
 		console.log(cmd)
 		for (let char of cmd.text) {
-			let style = {}
+			let span = document.createElement('span')
+			span.innerText = char
 			if (k < cmd.matches.length && j == cmd.matches[k]) {
 				//style['text-decoration'] = 'underline'
-				style['color'] = '#4B97B8'
+				span.classList.add('matched')
 				k++
 			}
-			let span = createElem('span', style)
-			span.innerText = char
 			cmdElem.appendChild(span)
 			j++;
 		}
@@ -161,6 +172,7 @@ function closeLauncher() {
 	input['value'] = ''
 	query = ''
 	focused = false
+	generateCommands()
 }
 
 function onKeyPress(e) {
