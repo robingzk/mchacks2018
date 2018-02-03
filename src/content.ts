@@ -8,6 +8,40 @@
 // |   |-- a cmd2
 
 let recognitionEnabled = false
+const commands = [
+  {
+    text: 'New tab',
+    callback () {
+      window.open('', '_blank')
+    }
+  },
+  {
+    text: 'New window',
+    callback () {
+      window.open('')
+    }
+  },
+]
+
+//
+var links = document.getElementsByTagName('a')
+for (let i = 0; i < links.length; i++) {
+  const link = links[i]
+  if (link.innerText.trim() === '') {
+    continue
+  }
+  commands.push({
+    text: '@' + link.innerText.trim(),
+    callback () {
+      link.click()
+    }
+  })
+}
+
+
+
+
+
 
 if (!('webkitSpeechRecognition' in window)) {
   console.log("UPGRADE")
@@ -134,20 +168,7 @@ function score(query: string, command: any): Command {
   }
 }
 
-const commands = [
-  {
-    text: 'New tab',
-    callback () {
-      window.open('', '_blank')
-    }
-  },
-  {
-    text: 'New window',
-    callback () {
-      window.open('')
-    }
-  },
-]
+
 let scoredCommands: Command[] = []
 let query = ""
 let commandIndex = 0
@@ -208,6 +229,7 @@ function generateCommands() {
   // Calculate the score of each command
   scoredCommands = commands.map((cmd) => score(query, cmd))
   scoredCommands.sort((x, y) => y.score - x.score)
+  scoredCommands = scoredCommands.slice(0, 10)
 
   // Add the commands
   let i = 0;
