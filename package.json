@@ -1,0 +1,18 @@
+{
+  "name": "mchacks2018",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "https://github.com/robingzk/mchacks2018.git",
+  "author": "rgzk <robin.guzniczak@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build/firefox.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-beta.39",
+    "@babel/preset-typescript": "^7.0.0-beta.39",
+    "babel-cli": "^7.0.0-beta.2",
+    "shelljs": "^0.8.1"
+  },
+  "dependencies": {}
+}
