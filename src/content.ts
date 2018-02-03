@@ -8,6 +8,7 @@
 // |   |-- a cmd2
 
 let speechRecognitionEnabled = true
+let speechRecognitionIsRunning = false
 
 if (!('webkitSpeechRecognition' in window)) {
   console.log("UPGRADE")
@@ -93,6 +94,7 @@ var css = `
 
 `
 var style = document.createElement('style');
+var cancelFlag = false;
 
 if (style['styleSheet']) {
     style['styleSheet'].cssText = css;
@@ -185,6 +187,7 @@ inputContainer.appendChild(input)
 if (speechRecognitionEnabled) {
   const speechButton = document.createElement('a')
   speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>`
+  speechButton.addEventListener('click', onSpeechClick)
   inputContainer.appendChild(speechButton)
 }
 
@@ -233,19 +236,30 @@ function generateCommands() {
 }
 
 function openLauncher() {
+  cancelFlag = false;
   launcher.style.visibility = "visible"
   input.focus()
-  recognition.start()
   focused = true
 }
 
 function closeLauncher() {
-  launcher.style.visibility = "hidden"
-  input['value'] = ''
-  query = ''
-  focused = false
-  recognition.stop()
-  generateCommands()
+  console.log('will set timout', cancelFlag)
+  setTimeout(() => {
+    console.log('callback', cancelFlag)
+    if (cancelFlag) {
+      setTimeout(() => {cancelFlag = false }, 200)
+    } else {
+      launcher.style.visibility = "hidden"
+      input['value'] = ''
+      query = ''
+      focused = false
+      if (speechRecognitionEnabled) {
+        recognition.stop()
+        speechRecognitionIsRunning = false
+      }
+      generateCommands()
+    }
+  }, 200)
 }
 
 function onKeyPress(e) {
@@ -266,6 +280,21 @@ function onKeyPress(e) {
       e.stopPropagation()
     }
   }
+}
+
+function onSpeechClick() {
+  if (speechRecognitionEnabled) {
+    if (speechRecognitionIsRunning) {
+      recognition.stop()
+      speechRecognitionIsRunning = false;
+    } else {
+      recognition.start()
+      speechRecognitionIsRunning = true;
+    }
+  }
+  console.log('speech cancel before', cancelFlag)
+  cancelFlag = true;
+  console.log('speech cancel before', cancelFlag)
 }
 
 closeLauncher()
