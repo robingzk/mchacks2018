@@ -26,23 +26,24 @@ const commands = [
 
 //
 var links = document.getElementsByTagName('a')
+var texts = {}
 for (let i = 0; i < links.length; i++) {
   const link = links[i]
-  if (link.innerText.trim() === '') {
+  if (!link || !link.innerText) {
     continue
   }
+  const text = link.innerText.trim()
+  if (text === '' || texts[text.toLowerCase()]) {
+    continue
+  }
+  texts[text.toLowerCase()] = true
   commands.push({
-    text: '@' + link.innerText.trim(),
+    text: '@' + text.replace('\n', ' - '),
     callback () {
       link.click()
     }
   })
 }
-
-
-
-
-
 
 if (!('webkitSpeechRecognition' in window)) {
   console.log("UPGRADE")
@@ -78,13 +79,11 @@ if (!('webkitSpeechRecognition' in window)) {
 var css = `
 #launcher {
   width: 400px;
-  background-color: #39264F;
   position: fixed;
   top: 0;
   left: 50%;
   transform: translate(-50%, 0);
-  padding-left: 5px;
-  opacity: 0.95;
+  opacity: 1.0;
   box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
   border-radius: 5px;
   z-index: 100000;
@@ -95,7 +94,7 @@ var css = `
   height: 48px;
   border: 0;
   font-size: 20px;
-  margin-left: 10px;
+  padding-left: 10px;
   type: text;
   background-color: transparent;
   color: #eeeeee;
@@ -106,6 +105,23 @@ var css = `
 #input-container a {
   display: inline-block;
   margin: 0 5px;
+}
+
+#input-container {
+  background-color: #39264F;
+  opacity: 0.95;
+  margin: 0;
+  padding: 0;
+}
+
+#container {
+  max-height: 400px;
+  overflow: hidden;
+  overflow-y: scroll;
+  background-color: #39264F;
+  opacity: 0.8;
+  margin: 0;
+  padding: 0;
 }
 
 #container a {
@@ -150,15 +166,22 @@ function score(query: string, command: any): Command {
   const matches: number[] = []
   let score = 0
   let j = 0
+  let consecutive = true
   if (query !== '') {
     for (let i = 0; i < command.text.length; i++) {
       if (command.text[i].toLowerCase() === query[j].toLowerCase()) {
         score++
+        if (consecutive) {
+          score++;
+        }
         matches.push(i)
         j++
         if (j === query.length) {
           break
         }
+        consecutive = true
+      } else {
+        consecutive = false
       }
     }
   }
@@ -169,7 +192,6 @@ function score(query: string, command: any): Command {
     callback: command.callback
   }
 }
-
 
 let scoredCommands: Command[] = []
 let query = ""
@@ -187,6 +209,7 @@ function createElem(tag: string, style: object) {
 }
 
 const launcher = document.createElement('div')
+launcher.style.visibility = 'hidden'
 launcher.id = 'launcher'
 document.body.appendChild(launcher)
 
@@ -219,20 +242,20 @@ let container = null
 generateCommands()
 
 function generateCommands() {
+  commandIndex = 0
+
   // Generate the container
   if (container) {
     launcher.removeChild(container)
   }
-  container = createElem('div', {
-    margin: '5px 0'
-  })
+  container = document.createElement('div')
   container.id = 'container'
   launcher.appendChild(container)
 
   // Calculate the score of each command
   scoredCommands = commands.map((cmd) => score(query, cmd))
   scoredCommands.sort((x, y) => y.score - x.score)
-  scoredCommands = scoredCommands.slice(0, 10)
+  scoredCommands = scoredCommands.slice(0, 30)
 
   // Add the commands
   let i = 0;
@@ -268,6 +291,10 @@ function openLauncher() {
 
 function closeLauncher() {
   console.log('will set timout', cancelFlag)
+  let delay = 0
+  if (recognitionEnabled) {
+    delay = 200
+  }
   setTimeout(() => {
     console.log('callback', cancelFlag)
     if (cancelFlag) {
@@ -283,7 +310,7 @@ function closeLauncher() {
       }
       generateCommands()
     }
-  }, 200)
+  }, delay)
 }
 
 function onKeyPress(e) {
