@@ -1,3 +1,6 @@
+.DS_Store
+package-lock.json
+
 # Logs
 logs
 *.log
@@ -55,7 +58,7 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
+yarn.lock
 
 # dotenv environment variables file
 .env
-

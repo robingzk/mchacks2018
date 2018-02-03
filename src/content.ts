@@ -5,6 +5,33 @@
 //     |-- a cmd1
 //     |-- a cmd2
 
+if (!('webkitSpeechRecognition' in window)) {
+  upgrade();
+} else {
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+	recognition.lang = 'en-US';
+
+  recognition.onstart = function() {
+		console.log('speech started')
+	}
+  recognition.onresult = function(event) {
+		for (let i = event.resultIndex; i < event.results.length; i++) {
+			let notFinal = '';
+			if (event.results[i].isFinal) result += event.results[i][0].transcript
+			else notFinal += event.results[i][0].transcript
+		}
+		console.log('result: ', result);
+	}
+  recognition.onerror = function(event) {
+		console.log('error: ', event)
+	}
+  recognition.onend = function() {
+		console.log('speech ended')
+	}
+}
+
 var css = `
 #launcher {
 	width: 400px;
@@ -83,6 +110,7 @@ const commands = ['New tab', 'Bookmark this page', 'Exit', 'Open bookmark...', '
 let query = ""
 let commandIndex = 0
 let focused = false
+
 
 function createElem(tag: string, style: object) {
 	const elem = document.createElement(tag)
@@ -187,6 +215,8 @@ function onKeyPress(e) {
 	} else {
 		if (e.key === 'e'){
 			openLauncher()
+			result = '';
+			recognition.start()
 		}
 	}
 }
