@@ -1,16 +1,19 @@
 //
 // div launcher
-// |-- input input
+// |-- div inputContainer
+// |   |-- input input
+// |   |-- a speechButton
 // |-- div container
-//     |-- a cmd1
-//     |-- a cmd2
+// |   |-- a cmd1
+// |   |-- a cmd2
 
 let result
-
+let speechRecognitionEnabled = true
 
 if (!('SpeechRecognition' in window)) {
   console.log("UPGRADE")
 } else {
+  speechRecognitionEnabled = true
   var recognition = new SpeechRecognition();
   recognition.continuous = true;
   recognition.interimResults = true;
@@ -43,7 +46,7 @@ var css = `
   top: 0;
   left: 50%;
   transform: translate(-50%, 0);
-  padding: 5px;
+  padding-left: 5px;
   opacity: 0.95;
   box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
   border-radius: 5px;
@@ -51,7 +54,7 @@ var css = `
 }
 
 #launcher input {
-  width: 100%;
+  width: calc(88%);
   height: 48px;
   border: 0;
   font-size: 20px;
@@ -63,7 +66,12 @@ var css = `
   -webkit-appearance: none;
 }
 
-#launcher a {
+#input-container a {
+  display: inline-block;
+  margin: 0 5px;
+}
+
+#container a {
   display: block;
   padding: 15px;
   color: white;
@@ -71,12 +79,12 @@ var css = `
   text-decoration: none;
 }
 
-#launcher a.selected {
+#container a.selected {
   background-color: #614F75;
   color: #fff;
 }
 
-#launcher a span.matched {
+#container a span.matched {
   text-decoration: underline;
   font-weight: bold;
   color: #65CBCB;
@@ -134,7 +142,6 @@ const commands = [
   {
     text: 'New window',
     callback () {
-      console.log("NEW WINDOW")
       window.open('')
     }
   },
@@ -158,6 +165,10 @@ const launcher = document.createElement('div')
 launcher.id = 'launcher'
 document.body.appendChild(launcher)
 
+const inputContainer = document.createElement('div')
+inputContainer.id = 'input-container'
+launcher.appendChild(inputContainer)
+
 const input = document.createElement('input')
 input.autocomplete = 'off'
 input['autocorrect'] = 'off'
@@ -167,7 +178,14 @@ input.addEventListener('keyup', (_) => {
   query = input['value']
   generateCommands()
 })
-launcher.appendChild(input)
+
+inputContainer.appendChild(input)
+
+if (speechRecognitionEnabled) {
+  const speechButton = document.createElement('a')
+  speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>`
+  inputContainer.appendChild(speechButton)
+}
 
 let container = null
 
@@ -181,6 +199,7 @@ function generateCommands() {
   container = createElem('div', {
     margin: '5px 0'
   })
+  container.id = 'container'
   launcher.appendChild(container)
 
   // Calculate the score of each command
