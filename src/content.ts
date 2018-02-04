@@ -341,6 +341,8 @@ function onKeyPress(e) {
     } else if (e.key === 'Enter') {
       scoredCommands[commandIndex].callback()
       closeLauncher()
+    } else if (e.ctrlKey && e.key === 'e' || e.key === 'F2') {
+      closeLauncher()
     }
   } else {
     if (e.ctrlKey && e.key === 'e' || e.key === 'F2') {
