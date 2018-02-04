@@ -18,6 +18,7 @@ const actions = {
 	},
 	getBookmarks () {
 		browser.bookmarks.getTree((data) => {
+      console.log('data', data)
 			portFromCS.postMessage({
 				command: 'bookmarks',
 				data

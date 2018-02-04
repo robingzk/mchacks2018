@@ -92,16 +92,17 @@ function loadBookmarks(parent, tree) {
     cancelClose: true
   })
   for (let child of tree[0].children) {
+    console.log('type', child)
     commands.push({
-      text: child.title,
+      text: child.title.trim() || '(no title)',
       callback () {
-        if (child.type === 'folder') {
+        if (child.children) {
           loadBookmarks(commands, [child])
         } else {
           window.open(child.url, '_self')
         }
       },
-      cancelClose: (child.type === 'folder')
+      cancelClose: (child.children != null)
     })
   }
 }
@@ -402,6 +403,8 @@ function onKeyPress(e) {
       updateSelected()
     } else if (e.key === 'Enter') {
       scoredCommands[commandIndex].callback()
+      console.log('cancel close',scoredCommands[commandIndex].cancelClose)
+      console.log('scoredCommands', scoredCommands[commandIndex])
       if (scoredCommands[commandIndex].cancelClose) {
         commandIndex = 0
         query = ''
