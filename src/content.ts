@@ -21,7 +21,7 @@ let speechRecognitionIsRunning = false
 let recognitionEnabled = false
 let commands = []
 
-let defaultCommands = [
+let defaultCommands: any[] = [
   {
     text: 'New tab',
     message: 'newTab',
@@ -65,6 +65,10 @@ for (let i = 0; i < links.length; i++) {
       link.click()
     },
     setBorder: () => {
+      link.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
       link.classList.add('selected-link')
     },
     clearBorder: () => {
@@ -166,14 +170,14 @@ var css = `
   margin: 0 5px;
 }
 
-#cmdlauncher #input-container {
+#cmdlauncher #cl-input-container {
   background-color: #2D6D7C;
   opacity: 0.95;
   margin: 0;
   padding: 0;
 }
 
-#cmdlauncher #container {
+#cmdlauncher #cl-container {
   max-height: 400px;
   overflow: hidden;
   overflow-y: scroll;
@@ -183,7 +187,7 @@ var css = `
   padding: 0;
 }
 
-#cmdlauncher #container a {
+#cmdlauncher #cl-container a {
   display: block;
   padding: 15px;
   color: white;
@@ -192,11 +196,11 @@ var css = `
   transition: all 0.3s;
 }
 
-#cmdlauncher #container a.selected {
+#cmdlauncher #cl-container a.selected {
   background-color: rgba(255,255,255,0.2);
 }
 
-#cmdlauncher #container a span.matched {
+#cmdlauncher #cl-container a span.matched {
   font-weight: bolder;
   color: #E98B25;
 }
@@ -314,7 +318,7 @@ function generateCommands() {
     launcher.removeChild(container)
   }
   container = document.createElement('div')
-  container.id = 'container'
+  container.id = 'cl-container'
   launcher.appendChild(container)
 
   // Calculate the score of each command
