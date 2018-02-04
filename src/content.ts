@@ -18,7 +18,7 @@ port.onMessage.addListener(({ command, data}) => {
 })
 
 let speechRecognitionIsRunning = false
-let recognitionEnabled = true
+let recognitionEnabled = false
 let commands = []
 
 let defaultCommands: any[] = [
@@ -147,9 +147,10 @@ var css = `
   left: 50%;
   transform: translate(-50%, 0);
   opacity: 1.0;
-  box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
-  border-radius: 5px;
+  box-shadow: 0 0 5px 5px rgba(0,0,0,0.2);
+  border-radius: 0px 0 5px 5px;
   z-index: 99999999999999999999;
+  overflow: hidden;
 }
 
 #cmdlauncher #cl-input {
@@ -164,26 +165,54 @@ var css = `
   outline: none;
   -webkit-appearance: none;
 }
+#cmdlauncher #cl-input::placeholder {
+  color: rgba(255, 255, 255, 0.6)
+}
 
-#cmdlauncher #cl-input-container a {
+#cmdlauncher #cl-input-container #speech-button {
   display: inline-block;
   margin: 0 5px;
-  animation-name: pulse;
-  animation-duration: 0.4s;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
   position: absolute;
   right: 0;
   top: 10px;
 }
 
+#cmdlauncher #cl-input-container #speech-radar {
+  height: 30px;
+  width: 30px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.4);
+  position: absolute;
+  top: 10px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#cmdlauncher #cl-input-container #speech-radar:hover {
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+#cmdlauncher #cl-input-container #speech-radar.pulse {
+  animation-name: pulse;
+  animation-duration: 1.4s;
+  animation-iteration-count: infinite;
+  //animation-direction: alternate;
+}
+
 @keyframes pulse {
   0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  65% {
     transform: scale(1);
+    opacity: 0.8;
   }
   100% {
-    transform: scale(0.95);
-    opacity: 0.8;
+    transform: scale(1.2);
+    opacity: 0.2;
   }
 }
 
@@ -323,14 +352,16 @@ input.placeholder = 'Enter a command...'
 inputContainer.appendChild(input)
 
 if (recognitionEnabled) {
-  const speechButton = document.createElement('a')
-  speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="-2 -2 26 26">
-  
-  <circle fill="transparent" stroke="#fff" cx="12" cy="12" r="14" />
+  var speechButton = document.createElement('a')
+  speechButton.id = 'speech-button'
+  speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="-5 -5 34 34">
   <path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/>
   </svg>`
-  speechButton.addEventListener('click', onSpeechClick)
+  var radar = document.createElement('div')
+  radar.id = 'speech-radar';
+  radar.addEventListener('click', onSpeechClick)
   inputContainer.appendChild(speechButton)
+  inputContainer.appendChild(radar)
 }
 
 let container = null
@@ -460,10 +491,12 @@ function onSpeechClick() {
   if (recognitionEnabled) {
     if (speechRecognitionIsRunning) {
       recognition.stop()
-      speechRecognitionIsRunning = false;
+      radar.classList.remove('pulse')
+      speechRecognitionIsRunning = false
     } else {
       recognition.start()
-      speechRecognitionIsRunning = true;
+      radar.classList.add('pulse')
+      speechRecognitionIsRunning = true
     }
   }
   cancelFlag = true;
