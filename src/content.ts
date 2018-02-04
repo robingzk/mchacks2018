@@ -12,9 +12,8 @@ if (!browser) var browser = chrome
 let port = browser.runtime.connect({ name: 'port-from-cs' })
 
 port.onMessage.addListener(({ command, data}) => {
-  console.log(command, data)
   if (command === 'bookmarks') {
-    loadBookmarks(data)
+    loadBookmarks(null, data)
   }
 })
 
@@ -22,63 +21,89 @@ let speechRecognitionIsRunning = false
 let recognitionEnabled = false
 let commands = []
 
-function loadDefaultCommands() {
-  commands = [
-    {
-      text: 'New tab',
-      message: 'newTab',
-    },
-    {
-      text: 'Close tab',
-      message: 'closeTab'
-    },
-    {
-      text: 'New window',
-      message: 'newWindow'
-    },
-    {
-      text: 'Cancel',
-      callback () {
-      }
-    },
-    {
-      text: 'View bookmarks',
-      message: 'getBookmarks',
-      cancelClose: true
+let defaultCommands = [
+  {
+    text: 'New tab',
+    message: 'newTab',
+  },
+  {
+    text: 'Close tab',
+    message: 'closeTab'
+  },
+  {
+    text: 'New window',
+    message: 'newWindow'
+  },
+  {
+    text: 'Cancel',
+    callback () {
     }
-  ]
-
-  //
-  var links = document.getElementsByTagName('a')
-  var texts = {}
-  for (let i = 0; i < links.length; i++) {
-    const link = links[i]
-    if (!link || !link.innerText) {
-      continue
-    }
-    const text = link.innerText.trim()
-    if (text === '' || texts[text.toLowerCase()]) {
-      continue
-    }
-    texts[text.toLowerCase()] = true
-    commands.push({
-      text: '@' + text.replace('\n', ' - '),
-      callback () {
-        link.click()
-      },
-      setBorder: () => {
-        link.classList.add('selected-link')
-      },
-      clearBorder: () => {
-        link.classList.remove('selected-link')
-      }
-    })
+  },
+  {
+    text: 'View bookmarks',
+    message: 'getBookmarks',
+    cancelClose: true
   }
+]
+
+//
+var links = document.getElementsByTagName('a')
+var texts = {}
+for (let i = 0; i < links.length; i++) {
+  const link = links[i]
+  if (!link || !link.innerText) {
+    continue
+  }
+  const text = link.innerText.trim()
+  if (text === '' || texts[text.toLowerCase()]) {
+    continue
+  }
+  texts[text.toLowerCase()] = true
+  defaultCommands.push({
+    text: '@' + text.replace('\n', ' - '),
+    callback () {
+      link.click()
+    },
+    setBorder: () => {
+      link.classList.add('selected-link')
+    },
+    clearBorder: () => {
+      link.classList.remove('selected-link')
+    }
+  })
 }
 
-function loadBookmarks(tree) {
+function loadDefaultCommands() {
+  commands = defaultCommands
+}
+
+function loadBookmarks(parent, tree) {
   commands = []
   console.log(tree)
+  commands.push({
+    text: '..',
+    callback() {
+      if (parent) {
+        commands = parent
+      } else {
+        loadDefaultCommands()
+      }
+    },
+    cancelClose: true
+  })
+  for (let child of tree[0].children) {
+    commands.push({
+      text: child.title,
+      callback () {
+        if (child.type === 'folder') {
+          loadBookmarks(commands, [child])
+        } else {
+          window.open(child.url, '_self')
+        }
+      },
+      cancelClose: (child.type === 'folder')
+    })
+  }
 }
 
 if (!('webkitSpeechRecognition' in window)) {
@@ -163,11 +188,11 @@ var css = `
   color: white;
   font-size: 14px;
   text-decoration: none;
+  transition: all 0.3s;
 }
 
 #cmdlauncher #container a.selected {
   background-color: rgba(255,255,255,0.2);
-  color: #fff;
 }
 
 #cmdlauncher #container a span.matched {
@@ -199,7 +224,8 @@ interface Command {
   callback: (() => void),
   setBorder: (() => void),
   clearBorder: (() => void),
-  cancelClose: boolean
+  cancelClose: boolean,
+  elem: any
 }
 
 function score(query: string, command: any): Command {
@@ -234,7 +260,8 @@ function score(query: string, command: any): Command {
     }),
     setBorder: command.setBorder || (() => {}),
     clearBorder: command.clearBorder || (() => {}),
-    cancelClose: command.cancelClose || false
+    cancelClose: command.cancelClose || false,
+    elem: document.createElement('a')
   }
 }
 
@@ -242,16 +269,6 @@ let scoredCommands: Command[] = []
 let query = ""
 let commandIndex = 0
 let focused = false
-
-function createElem(tag: string, style: object) {
-  const elem = document.createElement(tag)
-  for (let key in style) {
-    if (style.hasOwnProperty(key)) {
-      elem.style[key] = style[key]
-    }
-  }
-  return elem
-}
 
 const launcher = document.createElement('div')
 launcher.style.visibility = 'hidden'
@@ -291,7 +308,6 @@ let container = null
 
 
 function generateCommands() {
-
   // Generate the container
   if (container) {
     launcher.removeChild(container)
@@ -307,30 +323,28 @@ function generateCommands() {
   // Add the commands
   let i = 0;
   for (let cmd of scoredCommands.slice(0, 30)) {
-    const cmdElem = document.createElement('a')
-    if (i === commandIndex) {
-      cmdElem.classList.add('selected')
-    }
+    cmd.elem.innerHTML = ''
     let j = 0;
     let k = 0;
     for (let char of cmd.text) {
       let span = document.createElement('span')
       span.innerText = char
       if (k < cmd.matches.length && j == cmd.matches[k]) {
-        //style['text-decoration'] = 'underline'
         span.classList.add('matched')
         k++
       }
-      cmdElem.appendChild(span)
+      cmd.elem.appendChild(span)
       j++;
     }
-    container.appendChild(cmdElem)
+    container.appendChild(cmd.elem)
     i += 1
   }
   if (scoredCommands[commandIndex]) {
     scoredCommands.forEach(cmd => cmd.clearBorder())
     scoredCommands[commandIndex].setBorder()
-  }}
+  }
+  updateSelected()
+}
 
 function openLauncher() {
   cancelFlag = false;
@@ -342,13 +356,9 @@ function openLauncher() {
 
 function closeLauncher() {
   console.log('will set timout', cancelFlag)
-  let delay = 0
-  if (recognitionEnabled) {
-    delay = 200
-  }
-  setTimeout(() => {
+  const f = () => {
     if (cancelFlag) {
-      setTimeout(() => {cancelFlag = false }, 200)
+      cancelFlag = false
     } else {
       launcher.style.visibility = "hidden"
       input['value'] = ''
@@ -362,20 +372,38 @@ function closeLauncher() {
       generateCommands()
       scoredCommands.forEach(c => c.clearBorder())
     }
-  }, delay)
+  }
+  if (recognitionEnabled) {
+    setTimeout(f, 200)
+  } else {
+    f()
+  }
+}
+
+function updateSelected () {
+  let i = 0
+  for (let cmd of scoredCommands.slice(0, 30)) {
+    if (i === commandIndex) {
+      cmd.elem.classList.add('selected')
+    } else {
+      cmd.elem.classList.remove('selected')
+    }
+    i++
+  }
 }
 
 function onKeyPress(e) {
   if (focused) {
     if (e.key === 'ArrowDown') {
       commandIndex = (commandIndex + 1) % commands.length
-      generateCommands()
+      updateSelected()
     } else if (e.key === 'ArrowUp') {
       commandIndex = ((commandIndex - 1) + commands.length) % commands.length
-      generateCommands()
+      updateSelected()
     } else if (e.key === 'Enter') {
       scoredCommands[commandIndex].callback()
       if (scoredCommands[commandIndex].cancelClose) {
+        commandIndex = 0
         query = ''
         input.value = ''
       } else {

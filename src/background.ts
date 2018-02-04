@@ -17,10 +17,11 @@ const actions = {
 	    });
 	},
 	getBookmarks () {
-		let tree = browser.bookmarks.getTree()
-		portFromCS.postMessage({
-			command: 'bookmarks',
-			data: tree
+		browser.bookmarks.getTree((data) => {
+			portFromCS.postMessage({
+				command: 'bookmarks',
+				data
+			})
 		})
 	}
 }
