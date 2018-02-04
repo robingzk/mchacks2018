@@ -7,6 +7,7 @@
 // |   |-- a cmd1
 // |   |-- a cmd2
 
+if (!browser) var browser = chrome
 console.log(browser.runtime)
 browser.runtime.sendMessage("HELLOW")
 
@@ -17,7 +18,9 @@ const commands = [
     text: 'New tab',
     callback () {
       browser.runtime.sendMessage({url: 'newTab'})
-    }
+    },
+    setBorder: () => {},
+    clearBorder: () => {}
   },
   {
     text: 'Close tab',
