@@ -3,7 +3,7 @@
 
 Commander is a browser extension for Chrome and Firefox that provides a command launcher to control the browser and websites.
 
-Press 'F12' or 'Ctrl+E' to open it and start typing a command or use voice control.
+Download it [here](https://github.com/robingzk/mchacks2018/raw/master/commander.xpi). Press 'F12' or 'Ctrl+E' to open it and start typing a command or use voice control.
 
 ### Contribute
 Usage:
