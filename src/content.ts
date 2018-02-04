@@ -16,27 +16,15 @@ let recognitionEnabled = false
 const commands = [
   {
     text: 'New tab',
-    callback () {
-      browser.runtime.sendMessage({url: 'newTab'})
-    },
-    setBorder: () => {},
-    clearBorder: () => {}
+    message: 'newTab',
   },
   {
     text: 'Close tab',
-    callback () {
-      browser.runtime.sendMessage('closeTab')
-    },
-    setBorder: () => {},
-    clearBorder: () => {}
+    message: 'closeTab'
   },
   {
     text: 'New window',
-    callback () {
-      browser.runtime.sendMessage('newWindow')
-    },
-    setBorder: () => {},
-    clearBorder: () => {}
+    message: 'newWindow'
   },
 ]
 
@@ -213,9 +201,11 @@ function score(query: string, command: any): Command {
     score,
     matches,
     text: command.text,
-    callback: command.callback,
-    setBorder: command.setBorder,
-    clearBorder: command.clearBorder,
+    callback: command.callback || (() => {
+      browser.runtime.sendMessage(command.message)
+    }),
+    setBorder: command.setBorder || (() => {}),
+    clearBorder: command.clearBorder || (() => {}),
   }
 }
 

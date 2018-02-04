@@ -10,15 +10,17 @@ browser.runtime.onMessage.addListener(notify)
 const actions = {
 	newWindow () {
 		browser.windows.create()
+	},
+	newTab () {
+		browser.tabs.create({})
+	},
+	closeTab () {
+		browser.tabs.getCurrent().then((tab) => {
+			browser.tabs.dicard(tab.id)
+		})
 	}
 }
 
 function notify(name) {
-	console.log("RECEIVED MESSAGE")
-  // browser.notifications.create({
-  //   "type": "basic",
-  //   "title": "You clicked a link!",
-  //   "message": 'HELLO'
-  // });
 	actions[name]()
 }
