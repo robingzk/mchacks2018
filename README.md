@@ -1,10 +1,8 @@
 # mchacks2018
-McHacks 2018 Project
+> McHacks 2018 Project - Commander, the command launcher for the web
 
+Commander is a browser extension for Chrome and Firefox that provides a command launcher to control the browser and websites.
+
+### Contribute
 Usage:
 ` npm run build`
-
-Folder organization:
-- src: '.ts' files, converted into '.js' files into build
-- assets: copied to dist
-- manifest.json: copied into dist
