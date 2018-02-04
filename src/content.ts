@@ -7,19 +7,28 @@
 // |   |-- a cmd1
 // |   |-- a cmd2
 
+console.log(browser.runtime)
+browser.runtime.sendMessage("HELLOW")
+
 let speechRecognitionIsRunning = false
 let recognitionEnabled = false
 const commands = [
   {
     text: 'New tab',
     callback () {
-      window.open('', '_blank')
+      browser.runtime.sendMessage({url: 'newTab'})
+    }
+  },
+  {
+    text: 'Close tab',
+    callback () {
+      brwoser.runtime.sendMessage('closeTab')
     }
   },
   {
     text: 'New window',
     callback () {
-      window.open('')
+      browser.runtime.sendMessage('newWindow')
     }
   },
 ]
@@ -86,7 +95,7 @@ var css = `
   opacity: 1.0;
   box-shadow: 0 0 5px 8px rgba(0,0,0,0.2);
   border-radius: 5px;
-  z-index: 100000;
+  z-index: 99999999999999999999;
 }
 
 #launcher input {
@@ -223,10 +232,15 @@ input['autocorrect'] = 'off'
 input['spellcheck'] = false
 input.addEventListener('blur', closeLauncher)
 input.addEventListener('keyup', (_) => {
+  const oldQuery = query
   query = input['value']
+  if (query !== oldQuery) {
+    commandIndex = 0
+  }
   generateCommands()
 })
-//input.placeholder = 'Enter a command...'
+
+input.placeholder = 'Enter a command...'
 
 inputContainer.appendChild(input)
 
@@ -242,7 +256,6 @@ let container = null
 generateCommands()
 
 function generateCommands() {
-  commandIndex = 0
 
   // Generate the container
   if (container) {
