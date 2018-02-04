@@ -14,13 +14,17 @@ const commands = [
     text: 'New tab',
     callback () {
       window.open('', '_blank')
-    }
+    },
+    setBorder: () => {},
+    clearBorder: () => {}
   },
   {
     text: 'New window',
     callback () {
       window.open('')
-    }
+    },
+    setBorder: () => {},
+    clearBorder: () => {}
   },
 ]
 
@@ -41,6 +45,15 @@ for (let i = 0; i < links.length; i++) {
     text: '@' + text.replace('\n', ' - '),
     callback () {
       link.click()
+    },
+    setBorder: () => {
+      link.style['background-color'] = 'yellow'
+      // setTimeout(() => {
+      //   link.style['border-width'] = 0
+      // }, 1000)
+    },
+    clearBorder: () => {
+      link.style['background-color'] = 'transparent';
     }
   })
 }
@@ -60,9 +73,6 @@ if (!('webkitSpeechRecognition' in window)) {
   recognition.onresult = function(event) {
     query = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      //let notFinal = '';
-      //if (event.results[i].isFinal) query += event.results[i][0].transcript
-      //else query += event.results[i][0].transcript
       query += event.results[i][0].transcript
     }
     input.value = query;
@@ -159,7 +169,9 @@ interface Command {
   score: number,
   matches: number[],
   text: string,
-  callback: (() => void)
+  callback: (() => void),
+  setBorder: (() => void),
+  clearBorder: (() => void)
 }
 
 function score(query: string, command: any): Command {
@@ -189,7 +201,9 @@ function score(query: string, command: any): Command {
     score,
     matches,
     text: command.text,
-    callback: command.callback
+    callback: command.callback,
+    setBorder: command.setBorder,
+    clearBorder: command.clearBorder,
   }
 }
 
@@ -239,10 +253,10 @@ if (recognitionEnabled) {
 
 let container = null
 
-generateCommands()
+//generateCommands()
+//scoredCommands.forEach(c => c.clearBorder())
 
 function generateCommands() {
-  commandIndex = 0
 
   // Generate the container
   if (container) {
@@ -255,11 +269,10 @@ function generateCommands() {
   // Calculate the score of each command
   scoredCommands = commands.map((cmd) => score(query, cmd))
   scoredCommands.sort((x, y) => y.score - x.score)
-  scoredCommands = scoredCommands.slice(0, 30)
 
   // Add the commands
   let i = 0;
-  for (let cmd of scoredCommands) {
+  for (let cmd of scoredCommands.slice(0, 30)) {
     const cmdElem = document.createElement('a')
     if (i === commandIndex) {
       cmdElem.classList.add('selected')
@@ -280,13 +293,17 @@ function generateCommands() {
     container.appendChild(cmdElem)
     i += 1
   }
-}
+  if (scoredCommands[commandIndex]) {
+    scoredCommands.forEach(cmd => cmd.clearBorder())
+    scoredCommands[commandIndex].setBorder()
+  }}
 
 function openLauncher() {
   cancelFlag = false;
   launcher.style.visibility = "visible"
   input.focus()
   focused = true
+  generateCommands()
 }
 
 function closeLauncher() {
@@ -296,7 +313,6 @@ function closeLauncher() {
     delay = 200
   }
   setTimeout(() => {
-    console.log('callback', cancelFlag)
     if (cancelFlag) {
       setTimeout(() => {cancelFlag = false }, 200)
     } else {
@@ -309,6 +325,7 @@ function closeLauncher() {
         speechRecognitionIsRunning = false
       }
       generateCommands()
+      scoredCommands.forEach(c => c.clearBorder())
     }
   }, delay)
 }
@@ -343,10 +360,7 @@ function onSpeechClick() {
       speechRecognitionIsRunning = true;
     }
   }
-  console.log('speech cancel before', cancelFlag)
   cancelFlag = true;
-  console.log('speech cancel before', cancelFlag)
 }
 
-closeLauncher()
 window.addEventListener('keydown', onKeyPress)
