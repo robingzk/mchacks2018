@@ -9,7 +9,6 @@
 
 if (!browser) var browser = chrome
 console.log(browser.runtime)
-browser.runtime.sendMessage("HELLOW")
 
 let speechRecognitionIsRunning = false
 let recognitionEnabled = false

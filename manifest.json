@@ -12,11 +12,12 @@
     }
   ],
   "background": {
-    "scripts": ["./background.js"] 
+    "scripts": ["./background.js"]
   },
   "permissions": [
     "*://*/*",
-    "tabs"
+    "tabs",
+    "activeTab"
   ]
 
 }

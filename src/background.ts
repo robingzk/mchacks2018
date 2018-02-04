@@ -15,9 +15,9 @@ const actions = {
 		browser.tabs.create({})
 	},
 	closeTab () {
-		browser.tabs.getCurrent().then((tab) => {
-			browser.tabs.dicard(tab.id)
-		})
+    browser.tabs.query({ currentWindow: true, active: true }, ([tab]) => {
+      browser.tabs.remove(tab.id)
+    });
 	}
 }
 
