@@ -1,11 +1,8 @@
-
-// setInterval(() => {
-// 	browser.windows.open()
-// }, 2000)
 if (!browser) var browser = chrome
 
-console.log("BACKGROUND SCRIPT")
-browser.runtime.onMessage.addListener(notify)
+let portFromCS
+
+browser.runtime.onConnect.addListener(notify)
 
 const actions = {
 	newWindow () {
@@ -15,12 +12,22 @@ const actions = {
 		browser.tabs.create({})
 	},
 	closeTab () {
-    browser.tabs.query({ currentWindow: true, active: true }, ([tab]) => {
-      browser.tabs.remove(tab.id)
-    });
+	    browser.tabs.query({ currentWindow: true, active: true }, ([tab]) => {
+	      browser.tabs.remove(tab.id)
+	    });
+	},
+	getBookmarks () {
+		let tree = browser.bookmarks.getTree()
+		portFromCS.postMessage({
+			command: 'bookmarks',
+			data: tree
+		})
 	}
 }
 
-function notify(name) {
-	actions[name]()
+function notify(p) {
+	portFromCS = p
+	portFromCS.onMessage.addListener((name) => {
+		actions[name]()
+	})
 }

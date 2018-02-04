@@ -8,53 +8,77 @@
 // |   |-- a cmd2
 
 if (!browser) var browser = chrome
-console.log(browser.runtime)
+
+let port = browser.runtime.connect({ name: 'port-from-cs' })
+
+port.onMessage.addListener(({ command, data}) => {
+  console.log(command, data)
+  if (command === 'bookmarks') {
+    loadBookmarks(data)
+  }
+})
 
 let speechRecognitionIsRunning = false
 let recognitionEnabled = false
-const commands = [
-  {
-    text: 'New tab',
-    message: 'newTab',
-  },
-  {
-    text: 'Close tab',
-    message: 'closeTab'
-  },
-  {
-    text: 'New window',
-    message: 'newWindow'
-  },
-]
+let commands = []
 
-//
-var links = document.getElementsByTagName('a')
-var texts = {}
-for (let i = 0; i < links.length; i++) {
-  const link = links[i]
-  if (!link || !link.innerText) {
-    continue
-  }
-  const text = link.innerText.trim()
-  if (text === '' || texts[text.toLowerCase()]) {
-    continue
-  }
-  texts[text.toLowerCase()] = true
-  commands.push({
-    text: '@' + text.replace('\n', ' - '),
-    callback () {
-      link.click()
+function loadDefaultCommands() {
+  commands = [
+    {
+      text: 'New tab',
+      message: 'newTab',
     },
-    setBorder: () => {
-      link.style['background-color'] = 'yellow'
-      // setTimeout(() => {
-      //   link.style['border-width'] = 0
-      // }, 1000)
+    {
+      text: 'Close tab',
+      message: 'closeTab'
     },
-    clearBorder: () => {
-      link.style['background-color'] = 'transparent';
+    {
+      text: 'New window',
+      message: 'newWindow'
+    },
+    {
+      text: 'Cancel',
+      callback () {
+      }
+    },
+    {
+      text: 'View bookmarks',
+      message: 'getBookmarks',
+      cancelClose: true
     }
-  })
+  ]
+
+  //
+  var links = document.getElementsByTagName('a')
+  var texts = {}
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i]
+    if (!link || !link.innerText) {
+      continue
+    }
+    const text = link.innerText.trim()
+    if (text === '' || texts[text.toLowerCase()]) {
+      continue
+    }
+    texts[text.toLowerCase()] = true
+    commands.push({
+      text: '@' + text.replace('\n', ' - '),
+      callback () {
+        link.click()
+      },
+      setBorder: () => {
+        link.classList.add('selected-link')
+      },
+      clearBorder: () => {
+        link.classList.remove('selected-link')
+      }
+    })
+  }
+}
+
+function loadBookmarks(tree) {
+  commands = []
+  console.log(tree)
 }
 
 if (!('webkitSpeechRecognition' in window)) {
@@ -86,7 +110,7 @@ if (!('webkitSpeechRecognition' in window)) {
 }
 
 var css = `
-#launcher {
+#cmdlauncher {
   width: 400px;
   position: fixed;
   top: 0;
@@ -98,7 +122,7 @@ var css = `
   z-index: 99999999999999999999;
 }
 
-#launcher input {
+#cmdlauncher input {
   width: calc(88%);
   height: 48px;
   border: 0;
@@ -111,29 +135,29 @@ var css = `
   -webkit-appearance: none;
 }
 
-#input-container a {
+#cmdlauncher #input-container a {
   display: inline-block;
   margin: 0 5px;
 }
 
-#input-container {
-  background-color: #39264F;
+#cmdlauncher #input-container {
+  background-color: #2D6D7C;
   opacity: 0.95;
   margin: 0;
   padding: 0;
 }
 
-#container {
+#cmdlauncher #container {
   max-height: 400px;
   overflow: hidden;
   overflow-y: scroll;
-  background-color: #39264F;
-  opacity: 0.8;
+  background-color: #2D6D7C;
+  opacity: 0.85;
   margin: 0;
   padding: 0;
 }
 
-#container a {
+#cmdlauncher #container a {
   display: block;
   padding: 15px;
   color: white;
@@ -141,15 +165,19 @@ var css = `
   text-decoration: none;
 }
 
-#container a.selected {
-  background-color: #614F75;
+#cmdlauncher #container a.selected {
+  background-color: rgba(255,255,255,0.2);
   color: #fff;
 }
 
-#container a span.matched {
-  text-decoration: underline;
-  font-weight: bold;
-  color: #65CBCB;
+#cmdlauncher #container a span.matched {
+  font-weight: bolder;
+  color: #E98B25;
+}
+
+.selected-link {
+  background-color: rgba(255, 255, 0, 0.7);
+  transition: background-color 0.5s;
 }
 
 `
@@ -170,7 +198,8 @@ interface Command {
   text: string,
   callback: (() => void),
   setBorder: (() => void),
-  clearBorder: (() => void)
+  clearBorder: (() => void),
+  cancelClose: boolean
 }
 
 function score(query: string, command: any): Command {
@@ -201,10 +230,11 @@ function score(query: string, command: any): Command {
     matches,
     text: command.text,
     callback: command.callback || (() => {
-      browser.runtime.sendMessage(command.message)
+      port.postMessage(command.message)
     }),
     setBorder: command.setBorder || (() => {}),
     clearBorder: command.clearBorder || (() => {}),
+    cancelClose: command.cancelClose || false
   }
 }
 
@@ -225,7 +255,7 @@ function createElem(tag: string, style: object) {
 
 const launcher = document.createElement('div')
 launcher.style.visibility = 'hidden'
-launcher.id = 'launcher'
+launcher.id = 'cmdlauncher'
 document.body.appendChild(launcher)
 
 const inputContainer = document.createElement('div')
@@ -259,8 +289,6 @@ if (recognitionEnabled) {
 
 let container = null
 
-//generateCommands()
-//scoredCommands.forEach(c => c.clearBorder())
 
 function generateCommands() {
 
@@ -330,6 +358,7 @@ function closeLauncher() {
         recognition.stop()
         speechRecognitionIsRunning = false
       }
+      loadDefaultCommands()
       generateCommands()
       scoredCommands.forEach(c => c.clearBorder())
     }
@@ -346,7 +375,12 @@ function onKeyPress(e) {
       generateCommands()
     } else if (e.key === 'Enter') {
       scoredCommands[commandIndex].callback()
-      closeLauncher()
+      if (scoredCommands[commandIndex].cancelClose) {
+        query = ''
+        input.value = ''
+      } else {
+        closeLauncher()
+      }
     } else if (e.ctrlKey && e.key === 'e' || e.key === 'F2') {
       closeLauncher()
     }
@@ -370,5 +404,7 @@ function onSpeechClick() {
   }
   cancelFlag = true;
 }
+
+loadDefaultCommands()
 
 window.addEventListener('keydown', onKeyPress)
