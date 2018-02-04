@@ -67,7 +67,7 @@ for (let i = 0; i < links.length; i++) {
     setBorder: () => {
       link.scrollIntoView({
         behavior: 'smooth',
-        block: 'center'
+        block: 'center',
       })
       link.classList.add('selected-link')
     },
@@ -152,7 +152,7 @@ var css = `
   z-index: 99999999999999999999;
 }
 
-#cmdlauncher input {
+#cmdlauncher #cl-input {
   width: calc(88%);
   height: 48px;
   border: 0;
@@ -165,7 +165,7 @@ var css = `
   -webkit-appearance: none;
 }
 
-#cmdlauncher #input-container a {
+#cmdlauncher #cl-input-container a {
   display: inline-block;
   margin: 0 5px;
 }
@@ -281,10 +281,11 @@ launcher.id = 'cmdlauncher'
 document.body.appendChild(launcher)
 
 const inputContainer = document.createElement('div')
-inputContainer.id = 'input-container'
+inputContainer.id = 'cl-input-container'
 launcher.appendChild(inputContainer)
 
 const input = document.createElement('input')
+input.id = 'cl-input'
 input.autocomplete = 'off'
 input['autocorrect'] = 'off'
 input['spellcheck'] = false
@@ -390,6 +391,11 @@ function updateSelected () {
   for (let cmd of scoredCommands.slice(0, 30)) {
     if (i === commandIndex) {
       cmd.elem.classList.add('selected')
+
+      cmd.elem.scrollIntoView({
+        behavior: 'instant',
+        block: 'end',
+      })
     } else {
       cmd.elem.classList.remove('selected')
     }
