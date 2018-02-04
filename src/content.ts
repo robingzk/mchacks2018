@@ -18,7 +18,7 @@ port.onMessage.addListener(({ command, data}) => {
 })
 
 let speechRecognitionIsRunning = false
-let recognitionEnabled = false
+let recognitionEnabled = true
 let commands = []
 
 let defaultCommands: any[] = [
@@ -153,7 +153,7 @@ var css = `
 }
 
 #cmdlauncher #cl-input {
-  width: calc(88%);
+  width: 85%;
   height: 48px;
   border: 0;
   font-size: 20px;
@@ -168,6 +168,23 @@ var css = `
 #cmdlauncher #cl-input-container a {
   display: inline-block;
   margin: 0 5px;
+  animation-name: pulse;
+  animation-duration: 0.4s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  position: absolute;
+  right: 0;
+  top: 10px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
 }
 
 #cmdlauncher #cl-input-container {
@@ -175,6 +192,7 @@ var css = `
   opacity: 0.95;
   margin: 0;
   padding: 0;
+  position: relative;
 }
 
 #cmdlauncher #cl-container {
@@ -194,6 +212,7 @@ var css = `
   font-size: 14px;
   text-decoration: none;
   transition: all 0.3s;
+  text-align: left;
 }
 
 #cmdlauncher #cl-container a.selected {
@@ -305,7 +324,11 @@ inputContainer.appendChild(input)
 
 if (recognitionEnabled) {
   const speechButton = document.createElement('a')
-  speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>`
+  speechButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="-2 -2 26 26">
+  
+  <circle fill="transparent" stroke="#fff" cx="12" cy="12" r="14" />
+  <path fill="#fff" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/>
+  </svg>`
   speechButton.addEventListener('click', onSpeechClick)
   inputContainer.appendChild(speechButton)
 }
