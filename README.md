@@ -1,4 +1,4 @@
-# mchacks2018
+# mchacks2018 - Commander
 > McHacks 2018 Project - Commander, the command launcher for the web
 
 Commander is a browser extension for Chrome and Firefox that provides a command launcher to control the browser and websites.
