@@ -1,21 +1,19 @@
-# mchacks2018 - Commander
-> McHacks 2018 Project - Commander, the command launcher for the web
+# Commander
+> Web extension to control your browser using keyboard only.
 
-Download it [here](https://github.com/robingzk/mchacks2018/raw/master/commander.xpi) and press F2 or Ctrl+E to open it!
+Download it: [firefox](https://addons.mozilla.org/en-US/firefox/addon/commander), [web extension](https://github.com/robingzk/mchacks2018/raw/master/commander.xpi) (works for Chrome and all modern browsers).
 
-## Motivation
-Having to switch between the keyboard and mouse is painful and wastes time. Commander is an extension to control your browser with just your keyboard and/or your voice. Enhance your productivity.
+### Usage
+Press Ctrl+E or F2 and type a command such as 'new tab', then press enter. To open a link, type "@" and start typing
+the text associated with the link.
 
-## What it does
-Commander is a browser extension for Chrome and Firefox.  
-Features:
-* view and add bookmarks
-* open and close tabs
-* search and open links
-* VOICE CONTROL
-* .... and more
+## Features
+* Browser: open and close tabs, view history, etc.
+* Bookmarks: navigate your bookmarks and bookmark the current page
+* Search and open links on the current tab
 
-
-### Contribute
-Usage:
-` npm run build`
+### Building
+To build the extension, you need to have `npm` installed. To build, run the command below:
+```bash
+npm run build
+```
